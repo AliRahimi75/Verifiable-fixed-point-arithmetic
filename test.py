@@ -6,7 +6,7 @@ Vector_n = np.array([])
 Vector_p_time = np.array([])
 Vector_p_main_load = np.array([])
 Vector_v_time = np.array([])
-for i in range(4):
+for i in range(8):
     n = 8 * 2**i 
     m = 8 * 2**i 
     o = 8 * 2**i
