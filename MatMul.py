@@ -3,6 +3,8 @@ import prover as p
 import time
 import auxiliary_functions as aux
 
+prime_number = 2^64 - 2^32 + 1
+
 def Thaler_method(A, B):
     prover_time = 0
     prover_main_load = 0
@@ -23,11 +25,11 @@ def Thaler_method(A, B):
     if A.shape[1] != B.shape[0]:
         print("Sumcheck Error! A and B cannot be multipied due to dimension mismatch!")                      
     f = 0 # Verifier error flag
-    x = 10 # Precision
+    x = prime_number # Precision
     # --------------------------------------------
     # Prover: I've computed A.B correctly.
     t_old = time.time()
-    C = aux.binary_reshape(np.matmul(A,B))
+    C = aux.binary_reshape(np.remainder(np.matmul(A,B), prime_number))
     A = aux.binary_reshape(A)
     B = aux.binary_reshape(B)
     t_new = time.time()
@@ -65,7 +67,7 @@ def Thaler_method(A, B):
     # --------------------------------------------
     # Verifier:
     t_old = time.time()
-    if gj_0 + gj_1 != C1:
+    if np.remainder(gj_0 + gj_1, prime_number) != C1:
         print("Error 1!")
         f = 1
     g0 = gj_0
@@ -87,7 +89,7 @@ def Thaler_method(A, B):
         # --------------------------------------------
         # Verifier: 
         t_old = time.time()
-        if 2 * (gj_0 + gj_1) != p.twice_single_var_eval(g0, g1, g2, a[i]):
+        if np.remainder(2 * (gj_0 + gj_1), prime_number) != p.twice_single_var_eval(g0, g1, g2, a[i]):
             print("Error 2!", i)
             f = 1
         g0 = gj_0
@@ -100,15 +102,15 @@ def Thaler_method(A, B):
     t_old = time.time()
     A = p.squeeze_table_l(A, a[l - 2])
     B = p.squeeze_table_l(B, a[l - 2])
-    gj_0 = np.multiply(A[0], B[0])
-    gj_1 = np.multiply(A[1], B[1])
-    gj_2 = np.multiply(2 * A[1] - A[0], 2 * B[1] - B[0])
+    gj_0 = np.remainder(np.multiply(A[0], B[0]), prime_number)
+    gj_1 = np.remainder(np.multiply(A[1], B[1]), prime_number)
+    gj_2 = np.remainder(np.multiply(2 * A[1] - A[0], 2 * B[1] - B[0]), prime_number)
     t_new = time.time()
     prover_time = prover_time + t_new - t_old     
     # --------------------------------------------
     # Verifier: 
     t_old = time.time()
-    if 2 * (gj_0 + gj_1) != p.twice_single_var_eval(g0, g1, g2, a[l - 2]):
+    if np.remainder(2 * (gj_0 + gj_1), prime_number) != p.twice_single_var_eval(g0, g1, g2, a[l - 2]):
         print("Error 3!", i)
         print(p.twice_single_var_eval(g0, g1, g2, a[l - 2]))
         f = 1
@@ -117,11 +119,12 @@ def Thaler_method(A, B):
     g2 = gj_2
     # --------------------------------------------
     # Verifier: 
-    if p.twice_single_var_eval(g0, g1, g2, a[l - 1]) != 2 * s:
+    if np.remainder(2 * s, prime_number) != p.twice_single_var_eval(g0, g1, g2, a[l - 1]):
         print("Error 4!")
         f = 1
     t_new = time.time()
     verifier_time = verifier_time + t_new - t_old
     if f == 0:
         print("Done!")    
-    return prover_main_load, prover_time, verifier_time   
+
+    return prover_main_load, prover_time, verifier_time 
